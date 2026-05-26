@@ -160,11 +160,49 @@ function SceneLanding({ onNext }) {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const names = [
-    { label: "Happy Birthday Haju", color: "linear-gradient(135deg,#fff 0%,#ffd6e7 50%,#ff85a1 100%)" },
-    { label: "Happy Birthday Hajumma", color: "linear-gradient(135deg,#ffd6e7 0%,#ffb3c6 50%,#ff5f8f 100%)" },
-    { label: "Happy Birthday Junior", color: "linear-gradient(135deg,#ffb3c6 0%,#ff85a1 50%,#e0336b 100%)" },
-  ];
+const isMobile = window.innerWidth <= 768;
+
+const names = [
+  {
+    label: isMobile ? (
+      <>
+        Happy Birthday
+        <br />
+        Haju
+      </>
+    ) : (
+      "Happy Birthday Haju"
+    ),
+    color:
+      "linear-gradient(135deg,#fff 0%,#ffd6e7 50%,#ff85a1 100%)",
+  },
+  {
+    label: isMobile ? (
+      <>
+        Happy Birthday
+        <br />
+        Hajumma
+      </>
+    ) : (
+      "Happy Birthday Hajumma"
+    ),
+    color:
+      "linear-gradient(135deg,#ffd6e7 0%,#ffb3c6 50%,#ff5f8f 100%)",
+  },
+  {
+    label: isMobile ? (
+      <>
+        Happy Birthday
+        <br />
+        Junior
+      </>
+    ) : (
+      "Happy Birthday Junior"
+    ),
+    color:
+      "linear-gradient(135deg,#ffb3c6 0%,#ff85a1 50%,#e0336b 100%)",
+  },
+];
 
   const currentName = phase >= 4 ? 2 : phase >= 3 ? 1 : phase >= 2 ? 0 : -1;
 
@@ -191,25 +229,32 @@ function SceneLanding({ onNext }) {
       {/* Animated name block */}
       <div style={{ minHeight: "clamp(80px,18vw,160px)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
         {names.map((n, i) => (
-          <h1
-            key={i}
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: "clamp(36px,8vw,86px)",
-              margin: 0, lineHeight: 1.1,
-              background: n.color,
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              filter: "drop-shadow(0 0 28px rgba(255,130,170,0.5))",
-              position: i === 0 ? "relative" : "absolute",
-              opacity: currentName === i ? 1 : 0,
-              transform: currentName === i ? "translateY(0) scale(1)" : currentName > i ? "translateY(-24px) scale(0.95)" : "translateY(24px) scale(0.95)",
-              transition: "all 0.9s cubic-bezier(0.16,1,0.3,1)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {n.label} 💖
-          </h1>
+         <h1
+  key={i}
+  style={{
+    fontFamily: "'Playfair Display', serif",
+    fontSize: "clamp(36px,8vw,86px)",
+    margin: 0,
+    lineHeight: 1.15,
+    textAlign: "center",
+    whiteSpace: "normal",
+    background: n.color,
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    backgroundClip: "text",
+    position: i === 0 ? "relative" : "absolute",
+    opacity: currentName === i ? 1 : 0,
+    transform:
+      currentName === i
+        ? "translateY(0) scale(1)"
+        : currentName > i
+        ? "translateY(-24px) scale(0.95)"
+        : "translateY(24px) scale(0.95)",
+    transition: "all 0.9s cubic-bezier(0.16,1,0.3,1)",
+  }}
+>
+  {n.label} 💖
+</h1>
         ))}
       </div>
 
@@ -457,13 +502,17 @@ function SceneReasons({ onNext }) {
 // ─── Scene 4: Candles / Celebrate ────────────────────────────────────────────
 function SceneFinal({ onCelebrate }) {
   const [visible, setVisible] = useState(false);
-  const [candlesLit, setCandlesLit] = useState([false,false,false,false,false]);
+  const [candlesLit, setCandlesLit] = useState([false, false, false, false, false, false]);
   const [allLit, setAllLit] = useState(false);
   const [celebMsg, setCelebMsg] = useState(false);
+  const [wishText, setWishText] = useState("");
+  const [showWishInput, setShowWishInput] = useState(false);
+  const [blowing, setBlowing] = useState(false);
 
   useEffect(() => { setTimeout(() => setVisible(true), 200); }, []);
 
   const lightCandle = (i) => {
+    if (blowing) return;
     setCandlesLit(prev => {
       if (prev[i]) return prev;
       const next = [...prev];
@@ -471,12 +520,21 @@ function SceneFinal({ onCelebrate }) {
       if (next.every(Boolean)) {
         setTimeout(() => {
           setAllLit(true);
-          setCelebMsg(true);
-          onCelebrate();
-        }, 300);
+          setShowWishInput(true);
+        }, 500);
       }
       return next;
     });
+  };
+
+  const makeWish = () => {
+    if (wishText.trim() && !blowing) {
+      setBlowing(true);
+      setCelebMsg(true);
+      setTimeout(() => {
+        onCelebrate();
+      }, 800);
+    }
   };
 
   const litCount = candlesLit.filter(Boolean).length;
@@ -497,7 +555,7 @@ function SceneFinal({ onCelebrate }) {
           fontSize: "clamp(16px,3vw,22px)",
           color: "rgba(255,210,230,0.72)",
           letterSpacing: 4, marginBottom: 10, textTransform: "uppercase",
-        }}>Make a wish</p>
+        }}>🎈 Make a wish come true 🎈</p>
         <h2 style={{
           fontFamily: "'Playfair Display', serif",
           fontSize: "clamp(34px,8vw,68px)",
@@ -515,7 +573,6 @@ function SceneFinal({ onCelebrate }) {
           Click each candle to light it ✨
         </p>
 
-        {/* Cake card */}
         <div style={{
           display: "inline-block",
           background: "rgba(255,255,255,0.07)",
@@ -523,24 +580,24 @@ function SceneFinal({ onCelebrate }) {
           border: "1px solid rgba(255,255,255,0.14)",
           borderRadius: 28, padding: "38px 52px",
           boxShadow: "0 24px 64px rgba(0,0,0,0.2)",
+          animation: allLit && !blowing ? "cakePulse 1s ease infinite" : "none",
         }}>
-          {/* Candles */}
-          <div style={{ display: "flex", gap: 18, justifyContent: "center", marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 18, justifyContent: "center", marginBottom: 14, flexWrap: "wrap" }}>
             {candlesLit.map((lit, i) => (
               <button
                 key={i}
                 onClick={() => lightCandle(i)}
-                title={lit ? "Already lit!" : "Click to light"}
+                disabled={blowing}
                 style={{
                   background: "none", border: "none",
-                  cursor: lit ? "default" : "pointer",
-                  fontSize: 38, padding: 6,
+                  cursor: (!lit && !blowing) ? "pointer" : "default",
+                  fontSize: 42, padding: 6,
                   filter: lit
-                    ? "drop-shadow(0 0 10px rgba(255,210,60,1)) drop-shadow(0 0 20px rgba(255,160,30,0.7))"
-                    : "grayscale(1) opacity(0.4)",
-                  transform: lit ? "scale(1.25)" : "scale(1)",
+                    ? "drop-shadow(0 0 15px rgba(255,210,60,1)) drop-shadow(0 0 25px rgba(255,160,30,0.8))"
+                    : "grayscale(0.7) opacity(0.4)",
+                  transform: lit ? "scale(1.3)" : "scale(1)",
                   transition: "all 0.45s cubic-bezier(0.34,1.56,0.64,1)",
-                  animation: lit ? "flickerCandle 1.4s ease-in-out infinite alternate" : "none",
+                  animation: lit ? "candleFlicker 1.2s ease-in-out infinite alternate" : "none",
                   position: "relative", zIndex: 30,
                 }}
               >
@@ -549,7 +606,12 @@ function SceneFinal({ onCelebrate }) {
             ))}
           </div>
 
-          <div style={{ fontSize: "clamp(52px,13vw,88px)", lineHeight: 1, marginBottom: 10 }}>🎂</div>
+          <div style={{ 
+            fontSize: "clamp(72px,15vw,108px)", 
+            lineHeight: 1, marginBottom: 10,
+            transition: "transform 0.3s ease",
+            transform: blowing ? "scale(1.1)" : "scale(1)",
+          }}>🎂</div>
 
           <div style={{
             fontFamily: "'Dancing Script', cursive",
@@ -557,37 +619,92 @@ function SceneFinal({ onCelebrate }) {
             color: "rgba(255,220,238,0.95)",
             minHeight: 48,
           }}>
-            {allLit
-              ? "Now blow & wish! 💨✨"
-              : `${litCount} / 5 lit ${litCount > 0 ? "🔥".repeat(litCount) : ""}`}
+            {allLit && !blowing
+              ? "Now make a wish and blow! 💨✨"
+              : `${litCount} / ${candlesLit.length} lit ${litCount > 0 ? "🔥".repeat(Math.min(litCount, 5)) : ""}`}
           </div>
         </div>
 
-        {/* Celebration message */}
-        {celebMsg && (
+        {/* {showWishInput && !blowing && (
           <div style={{
             marginTop: 40,
-            animation: "fadeInUp 1s ease both",
+            animation: "fadeInUp 0.8s ease both",
+            display: "flex",
+            gap: 12,
+            justifyContent: "center",
+            flexWrap: "wrap",
+          }}>
+            <input
+              type="text"
+              placeholder="Type your wish here..."
+              value={wishText}
+              onChange={(e) => setWishText(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && makeWish()}
+              style={{
+                padding: "14px 24px",
+                fontSize: "18px",
+                fontFamily: "'Cormorant Garamond', serif",
+                borderRadius: 60,
+                border: "1.5px solid rgba(255,255,255,0.35)",
+                background: "rgba(255,255,255,0.1)",
+                backdropFilter: "blur(12px)",
+                color: "#fff",
+                minWidth: "260px",
+                outline: "none",
+              }}
+            />
+            <button
+              onClick={makeWish}
+              style={btnBase}
+              onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+            >
+              Make Wish! 🎈
+            </button>
+          </div>
+        )} */}
+
+        {showWishInput && !blowing && (
+          <div style={{
+            marginTop: 40,
+            animation: "fadeInUp 1s ease both, wishGlow 2s ease-in-out infinite",
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "clamp(18px,3.5vw,26px)",
-            color: "rgba(255,220,240,0.92)",
+            fontSize: "clamp(20px,4vw,28px)",
+            color: "rgba(255,220,240,0.95)",
             lineHeight: 1.7,
             maxWidth: 540,
           }}>
             <p style={{ margin: 0 }}>
-              Whatever you wish for, I hope it comes true — <br />
-              because you deserve every beautiful thing life has to give. 🌹
+              ✨ Your wish is on its way to the stars! ✨<br />
+              <span style={{ fontSize: "clamp(16px,3vw,20px)" }}>
+                Whatever you wished for, I hope it comes true — because you deserve every beautiful thing life has to give. 🌹
+              </span>
             </p>
           </div>
         )}
       </div>
 
       <style>{`
-        @keyframes flickerCandle{
-          from{filter:drop-shadow(0 0 7px rgba(255,210,60,.9)) drop-shadow(0 0 16px rgba(255,140,20,.6))}
-          to{filter:drop-shadow(0 0 16px rgba(255,230,80,1)) drop-shadow(0 0 30px rgba(255,160,30,.9))}
+        @keyframes candleFlicker {
+          from {
+            filter: drop-shadow(0 0 10px rgba(255,210,60,0.9)) drop-shadow(0 0 20px rgba(255,140,20,0.6));
+          }
+          to {
+            filter: drop-shadow(0 0 20px rgba(255,230,80,1)) drop-shadow(0 0 35px rgba(255,160,30,0.9));
+          }
         }
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes cakePulse {
+          0%,100% { transform: scale(1); box-shadow: 0 24px 64px rgba(0,0,0,0.2); }
+          50% { transform: scale(1.02); box-shadow: 0 28px 72px rgba(255,105,180,0.3); }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes wishGlow {
+          0%,100% { text-shadow: 0 0 10px rgba(255,105,180,0.3); }
+          50% { text-shadow: 0 0 30px rgba(255,105,180,0.6); }
+        }
       `}</style>
     </div>
   );
